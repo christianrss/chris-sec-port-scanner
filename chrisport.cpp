@@ -31,22 +31,28 @@ bool isOpen(const string &ip, int port) {
     return result != SOCKET_ERROR;
 }
 
+void scanPorts(const string &ip, int startPort, int endPort) {
+    for (int port = startPort; port <= endPort; port++) {
+        if (isOpen(ip, port)) {
+            cout << "Port " << port << " is open." << endl;
+        }
+    }
+}
+
 int main() {
     initWinsock();
 
     string targetIP;
-    int port;
+    int startPort, endPort;
 
     cout << "Enter target IP: ";
     cin >> targetIP;
-    cout << "Enter port: ";
-    cin >> port;
+    cout << "Enter start port: ";
+    cin >> startPort;
+    cout << "Enter end port: ";
+    cin >> endPort;
 
-    if (isOpen(targetIP, port)) {
-        cout << "Port " << port << " is open" << endl;
-    } else {
-        cout << "Port " << port << " is closed" << endl;
-    }
+    scanPorts(targetIP, startPort, endPort);
 
     return 0;
 }
