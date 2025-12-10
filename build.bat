@@ -1,1 +1,1 @@
-g++ chrisport.cpp -o bin/chris-port.exe -lws2_32
+g++ chrisport.cpp -o bin/chris-port.exe -lws2_32 -lpthread

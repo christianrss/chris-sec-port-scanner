@@ -1,5 +1,8 @@
 #include <iostream>
 #include <WinSock2.h>
+#include <vector>
+#include <thread>
+#include <string>
 #pragma comment(lib, "ws2_32.lib");
 using namespace std;
 
@@ -31,22 +34,46 @@ bool isOpen(const string &ip, int port) {
     return result != SOCKET_ERROR;
 }
 
+void scanPorts(const string &ip, int startPort, int endPort) {
+    for (int port = startPort; port <= endPort; port++) {
+        if (isOpen(ip, port)) {
+            cout << "Port " << port << " is open." << endl;
+        }
+    }
+}
+
 int main() {
     initWinsock();
 
     string targetIP;
-    int port;
+    int startPort, endPort, numThreads;
 
     cout << "Enter target IP: ";
     cin >> targetIP;
-    cout << "Enter port: ";
-    cin >> port;
+    cout << "Enter start port: ";
+    cin >> startPort;
+    cout << "Enter end port: ";
+    cin >> endPort;
+    cout << "Enter number of threads: ";
+    cin >> numThreads;
 
-    if (isOpen(targetIP, port)) {
-        cout << "Port " << port << " is open" << endl;
-    } else {
-        cout << "Port " << port << " is closed" << endl;
+    int range = (endPort - startPort + 1) / numThreads;
+    vector<thread> threads;
+
+    for (int i = 0; i < numThreads; i++) {
+        int rangeStart = startPort + i * range;
+        int rangeEnd = (i == numThreads - 1)
+            ? endPort
+            : rangeStart + range - 1;
+
+        threads.emplace_back(scanPorts, targetIP, rangeStart, rangeEnd);
     }
+
+    for (auto &t : threads) {
+        t.join();
+    }
+
+    cout << "Scan completed.";
 
     return 0;
 }
