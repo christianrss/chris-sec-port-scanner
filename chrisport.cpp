@@ -1,5 +1,8 @@
 #include <iostream>
 #include <WinSock2.h>
+#include <vector>
+#include <thread>
+#include <string>
 #pragma comment(lib, "ws2_32.lib");
 using namespace std;
 
@@ -43,7 +46,7 @@ int main() {
     initWinsock();
 
     string targetIP;
-    int startPort, endPort;
+    int startPort, endPort, numThreads;
 
     cout << "Enter target IP: ";
     cin >> targetIP;
@@ -51,8 +54,26 @@ int main() {
     cin >> startPort;
     cout << "Enter end port: ";
     cin >> endPort;
+    cout << "Enter number of threads: ";
+    cin >> numThreads;
 
-    scanPorts(targetIP, startPort, endPort);
+    int range = (endPort - startPort + 1) / numThreads;
+    vector<thread> threads;
+
+    for (int i = 0; i < numThreads; i++) {
+        int rangeStart = startPort + i * range;
+        int rangeEnd = (i == numThreads - 1)
+            ? endPort
+            : rangeStart + range - 1;
+
+        threads.emplace_back(scanPorts, targetIP, rangeStart, rangeEnd);
+    }
+
+    for (auto &t : threads) {
+        t.join();
+    }
+
+    cout << "Scan completed.";
 
     return 0;
 }
