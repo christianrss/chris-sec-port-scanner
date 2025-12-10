@@ -3,8 +3,12 @@
 #include <vector>
 #include <thread>
 #include <string>
+#include <mutex>
+#include <iomanip>
 #pragma comment(lib, "ws2_32.lib");
 using namespace std;
+
+mutex printMutex;
 
 void initWinsock() {
     WSADATA wsaData;
@@ -34,10 +38,22 @@ bool isOpen(const string &ip, int port) {
     return result != SOCKET_ERROR;
 }
 
+string getServiceName(int port) {
+    struct servent *service = getservbyport(htons(port), "tcp");
+    return service ? service->s_name : "Unknown";
+}
+
 void scanPorts(const string &ip, int startPort, int endPort) {
     for (int port = startPort; port <= endPort; port++) {
         if (isOpen(ip, port)) {
-            cout << "Port " << port << " is open." << endl;
+            string serviceName = getServiceName(port);
+            lock_guard<mutex> lock(printMutex);
+
+            cout << "\033[32m"
+                "Port " << setw(5) << port
+                << " | Protocol: TCP"
+                << " | Service: " << serviceName
+                << "\033[0m" << endl;
         }
     }
 }
